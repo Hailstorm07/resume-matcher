@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Matcher - Job Matching System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        textarea, input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .input-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-area:hover {
+            background: #f0f4ff;
+        }
+
+        .file-upload-area.dragging {
+            background: #e0e7ff;
+            border-color: #764ba2;
+        }
+
+        .file-upload-area p {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .file-upload-area small {
+            display: block;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group .button {
+            flex: 1;
+        }
+
+        .button.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .button.secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .results-section {
+            margin-top: 20px;
+        }
+
+        .match-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .match-header h3 {
+            color: #333;
+            font-size: 1.3em;
+        }
+
+        .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+        }
+
+        .score.excellent {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .score.good {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .score.decent {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .score.poor {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .skills-section {
+            margin-top: 15px;
+        }
+
+        .skills-section h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .skill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .skill.matched {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .skill.missing {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .candidate-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .candidate-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .candidate-info strong {
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .info {
+            background: #cfe2ff;
+            color: #084298;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #b6d4fe;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .match-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        .tabs-container {
+            margin-bottom: 20px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .file-name {
+            color: #667eea;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Resume Job Matcher</h1>
+            <p>Upload or paste your resume and find matching job opportunities</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: Resume Input -->
+            <div class="card">
+                <h2>📄 Your Resume</h2>
+
+                <div class="tabs-container">
+                    <div class="input-tabs">
+                        <button class="tab-button active" onclick="switchTab('paste')">Paste Text</button>
+                        <button class="tab-button" onclick="switchTab('upload')">Upload File</button>
+                    </div>
+
+                    <!-- Paste Text Tab -->
+                    <div id="paste" class="tab-content active">
+                        <div class="form-group">
+                            <label for="resumeText">Paste your resume here:</label>
+                            <textarea id="resumeText" placeholder="John Doe&#10;john@example.com&#10;(555) 123-4567&#10;&#10;5 years of experience&#10;Skills: Java, Spring Boot, Python, Docker, Kubernetes..."></textarea>
+                            <small>Include: name, email, phone, experience, and skills</small>
+                        </div>
+                    </div>
+
+                    <!-- Upload File Tab -->
+                    <div id="upload" class="tab-content">
+                        <div class="form-group">
+                            <div class="file-upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                                <p>📁 Drag and drop your file here</p>
+                                <p>or click to browse</p>
+                                <small>Supported: .txt, .pdf text content</small>
+                            </div>
+                            <input type="file" id="fileInput" style="display: none;" accept=".txt,.pdf" onchange="handleFileSelect(event)">
+                            <div id="fileName" class="file-name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Job Descriptions to Match Against:</label>
+                    <div id="jobSelectionContainer" style="border: 2px solid #ddd; border-radius: 6px; padding: 12px; background: #f9f9f9; max-height: 200px; overflow-y: auto;">
+                        <div style="text-align: center; color: #999; padding: 20px;">Loading job descriptions...</div>
+                    </div>
+                    <small style="margin-top: 5px; display: block;">Select one or more job descriptions to match</small>
+                </div>
+
+                <div class="button-group">
+                    <button class="button" onclick="matchResume()">🚀 Find Matches</button>
+                    <button class="button secondary" onclick="clearAll()">Clear</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Sample Data / Instructions -->
+            <div class="card">
+                <h2>💡 How to Use</h2>
+                
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">Steps:</h3>
+                    <ol style="color: #555; line-height: 1.8; margin-left: 20px;">
+                        <li><strong>Enter Your Resume</strong> - Paste text or upload a file</li>
+                        <li><strong>Select Job Descriptions</strong> - Choose from 10 predefined positions</li>
+                        <li><strong>Click "Find Matches"</strong> - Get instant matching results</li>
+                        <li><strong>Review Scores</strong> - See skill breakdown for each job</li>
+                    </ol>
+                </div>
+
+                <h3 style="color: #667eea; margin-bottom: 15px;">Sample Resume:</h3>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; font-size: 0.9em; color: #555; line-height: 1.6; margin-bottom: 15px;">
+                    <strong>John Doe</strong><br>
+                    john@example.com<br>
+                    (555) 123-4567<br>
+                    <br>
+                    <strong>Experience:</strong> 5 years<br>
+                    <strong>Skills:</strong> Java, Spring Boot, React, Python, Docker, Kubernetes, MySQL, PostgreSQL
+                </div>
+
+                <h3 style="color: #667eea; margin-bottom: 15px;">Available Positions:</h3>
+                <div style="font-size: 0.9em; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                    <div style="margin-bottom: 10px; padding: 8px; background: #f0f4ff; border-radius: 4px;">
+                        <strong>1. Scientific Programmer/Software Engineer</strong><br>
+                        <span style="color: #999;">Riverside Research</span>
+                    </div>
+                    <div style="margin-bottom: 10px; padding: 8px; background: #f0f4ff; border-radius: 4px;">
+                        <strong>2. Software Engineer - Core Java/Spring Boot</strong><br>
+                        <span style="color: #999;">Capgemini</span>
+                    </div>
+                    <div style="margin-bottom: 10px; padding: 8px; background: #f0f4ff; border-radius: 4px;">
+                        <strong>3. Software Engineer</strong><br>
+                        <span style="color: #999;">Adobe</span>
+                    </div>
+                    <div style="padding: 8px; background: #f0f4ff; border-radius: 4px;">
+                        <strong>4. Software Engineer - Infrastructure</strong><br>
+                        <span style="color: #999;">Astra</span>
+                    </div>
+                </div>
+
+                <h3 style="color: #667eea; margin-bottom: 15px;">Matching Score Guide:</h3>
+                <div style="font-size: 0.9em; color: #555; line-height: 1.8;">
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; color: #155724;">90-100%</span> Excellent Match
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: #cfe2ff; padding: 2px 6px; border-radius: 3px; color: #084298;">75-89%</span> Good Match
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: #fff3cd; padding: 2px 6px; border-radius: 3px; color: #856404;">60-74%</span> Decent Match
+                    </div>
+                    <div>
+                        <span style="background: #f8d7da; padding: 2px 6px; border-radius: 3px; color: #721c24;">Below 60%</span> Poor Match
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsContainer" style="display: none;">
+            <div class="card">
+                <h2>📊 Matching Results</h2>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFile = null;
+        
+        // Predefined Job Descriptions
+        const predefinedJobs = [
+            {
+                id: 'JD001',
+                title: 'Scientific Programmer/Software Engineer',
+                company: 'Riverside Research',
+                text: `Riverside Research is an independent National Security Nonprofit dedicated to research and development in the national interest. We provide high-end technical services, research and development, and prototype solutions to some of the country's most challenging technical problems.
+
+All Riverside Research opportunities require U.S. Citizenship.
+
+Position Overview
+Riverside Research's Applied Mathematics and Physics Solutions group is seeking a Scientific Programmer/Software Engineer to support development of high-performance large scale scientific simulation codes. The candidate will implement and test new techniques that advance the state-of-the-art in defense industry computational electromagnetic (CEM) tools. Work will be performed in collaboration with a diverse team, with backgrounds in CEM, physics, computer science, electrical engineering, applied mathematics, and high-performance computing (HPC) at our facilities in Ohio (Dayton), New York (NYC), and Illinois (Champaign).
+
+Responsibilities
+- Supports all aspects of the software development lifecycle from requirements, design, development, documentation, testing (validation and verification) and debugging efficient scientific software applications
+- Maintains code quality by participating in peer reviews of software and helping develop unit tests, verification and validation test plans, and performing validation and verification
+- Applies new methods, algorithms, or processes, and evaluates and communicates conclusions
+- Assists in establishing and maintaining standards and best practices for software development
+- Evaluates new industry standards and best practices for suitable adoption
+- Becomes a subject matter expert in computational methods, software engineering, high performance computing, applied mathematics/physics, and/or modeling and simulation
+- Other duties as assigned
+
+Required Qualifications
+- Ability to obtain and maintain a Top Secret/SCI Security Clearance
+- Degree in Computer Science, Software Engineering, Computational Science or closely related field with software development experience
+- Bachelor's with 5+ years of experience, or Master's with 3+ years of experience, or PhD with 0+ years of experience
+- Applied programming experience with low-level languages like C, C++ and/or Fortran
+- Applied software development on and for Linux or other Unix-like systems
+- Applied experience coding with Python, Unix shell scripting and similar languages for software development
+- Experienced with version control software applications
+- Ability to work independently and collaboratively with a team
+- Excellent interpersonal and communications skills, written and verbal
+
+Desired Qualifications
+- Active Security Clearance, TS/SCI (with poly preferred)
+- Experience with the full software development lifecycle (SDLC)
+- Experience with parallel programming on high-performance computers (MPI and/or OpenMP)
+- Experience developing cross-platform (Windows and Linux) software
+
+Compensation: $180,000 - $220,000`
+            },
+            {
+                id: 'JD002',
+                title: 'Software Engineer - Core Java/Spring Boot',
+                company: 'Capgemini',
+                text: `Choosing Capgemini means choosing a company where you will be empowered to shape your career in the way you'd like, where you'll be supported and inspired by a collaborative community of colleagues around the world.
+
+Job Description
+Should have 7 years of strong hands-on experience with Core Java Spring Boot. Should have 4 years of strong hands-on experience with Angular or React. Hands On experience Relational Database Microsoft SQL Server UDBDB2 or NoSQL is required. Should have strong hands on experience working on Microservices, Kafka, REST API Development experience. Hands on experience working with containerization technologies Docker, Kubernetes. Experience in modernizing/rewriting legacy application to modernized distributed platforms. Core Banking Or Financial/Wealth Management Domain Working Experience Required.
+
+Good to have
+- Python experience
+- AI/ML exposure is valuable
+- Experience in Cloud platforms Azure etc
+- Experience in DevOps pipeline CI/CD practice any tools eg Jenkins, teamcity
+
+Works in the area of Software Engineering, which encompasses the development, maintenance and optimization of software solutions/applications.
+
+Compensation: $61,087 - $104,364`
+            },
+            {
+                id: 'JD003',
+                title: 'Software Engineer',
+                company: 'Adobe',
+                text: `Adobe is seeking talented and passionate Software Engineer across all organizations to help plan, design, develop, and test software systems or applications for software enhancements and new products used in local, networked, cloud-based or Internet-related computer programs and products.
+
+What You'll Do
+- Develop high-performance, reliable, testable, and maintainable code.
+- Participating in all aspects of software development activities, including design, coding, code review, testing, bug fixing, and code/API documentation.
+- Collaborate with engineers and participate in daily or weekly standups and meetings.
+- Grow with the support of your team and help others on the team grow by providing thoughtful feedback and uplifting those around you.
+- Work both independently and collaboratively within a fast-paced development team, with clear, positive, and constructive communication.
+- Additional responsibilities as needed based on the specific role or team.
+
+What You Need To Succeed
+- Bachelor's or Master's in Computer Science, Computer Engineering, Electrical Engineering, or equivalent experience required
+- 5-7 + years of relevant experience
+- Proficient in programming languages such as Python, Java, C++, etc.
+- Strong technical background with analytical and problem-solving skills.
+- Interest or experience in AI/ML concepts, with exposure to AI tools, is a plus.
+- Familiarity with client-side frameworks and libraries like React, Angular, jQuery is a plus.
+- Excellent problem-solving and debugging skills, and direct experience with DevOps in a SaaS environment is a plus.
+- Customer-focused and have a real passion for quality and engineering excellence at scale.
+- Excellent communication and collaboration skills.
+
+Compensation: $139,000 - $257,550 annually`
+            },
+            {
+                id: 'JD004',
+                title: 'Software Engineer - Infrastructure',
+                company: 'Astra',
+                text: `Astra's mission is to improve life on Earth from space by creating a healthier and more connected planet. Today, Astra offers one of the lowest cost-per-launch dedicated orbital launch services.
+
+As a Software Engineer at Astra, you'll build systems that support rocket testing, manufacturing, and launch operations. You'll work closely with hardware and operations teams to develop tools for automation, data collection, and real-time analysis.
+
+How You'll Fulfill Your Mission
+- Develop and maintain Python-based systems for automating rocket testing, manufacturing, and launch operations.
+- Build tools for real-time telemetry data collection and analysis to support rapid decision-making.
+- Collaborate with teams across engineering, manufacturing, and launch to identify software needs and ship impactful solutions.
+- Contribute to internal tools, APIs (REST/gRPC), and cloud-native infrastructure that enable fast iteration and high reliability.
+- Troubleshoot and improve systems that must operate under high complexity and extreme conditions.
+
+Why We Value You
+- 3+ years of experience in software engineering, including production-level Python development
+- Solid understanding of system design, data pipelines, and APIs
+- Experience with cloud-native services (e.g., AWS, Kubernetes, Docker) and telemetry or time-series systems
+- Familiarity with REST/gRPC APIs and common data serialization formats (e.g., JSON, YAML, Protobuf)
+- Proven ability to deliver software in high-stakes or cross-functional environments
+- Strong communication skills and a proactive mindset
+- Bachelor's degree in Computer Science, Engineering, or a related field (or equivalent practical experience)
+
+Compensation: $130,000 - $160,000 per year`
+            },
+            {
+                id: 'JD005',
+                title: 'Software Engineer',
+                company: 'Lockheed Martin',
+                text: `Basic Qualifications
+Programming experience required
+Be able to understand SV CONOPS
+Be able to troubleshoot issues with minimum supervision
+Be able to collaborate with others
+Job Description
+Space is a critical domain, connecting our technologies, our security and our humanity. While others view space as a destination, we see it as a realm of possibilities, where we can do more — we can innovate, invest, inspire and integrate our capabilities to transform the future.
+At Lockheed Martin Space, we aim to harness the full potential of space to cultivate innovation, reduce costs, and push the boundaries of what technology can achieve. We're creating future-ready solutions, focusing on resiliency and urgency through our 21st Century Security® vision. We're erasing boundaries and forming partnerships across industries and around the world. We're advancing spacecraft and the workforce to fuel the next generation. And we're re-imagining how space can connect us, ensuring security and prosperity.
+Join us in shaping a new era in space and find a career that's built for you.
+This position is contingent on program award expected Q2 2026
+This position is for a Software Engineer supporting the Space Software Product Line Mobile SLE) Software Systems Team. This role will support Software Systems for MUOS SLE. Responsibilities could include working in a collaborative environment interacting with peers and occasional customer interactions. This includes supporting the development of Specifications and Interface Control Documents, test scenarios to test new capability or verify defect fix, mission problems or questions in computer language for solutions by means of data processing equipment. Supporting informal and formal test events, ensuring we meet customer standards and quality, and working in a lab environment.
+Desired Skills
+Python
+Unit testing
+Agile programming
+Full stack development
+STARS / EASY framework
+Software testing
+VM Infrastructure
+Other Important Information
+By applying to this job, you are expressing interest in this position and could be considered for other career opportunities where similar skills and requirements have been identified as a match. Should this match be identified you may be contacted for this and future openings.
+Ability to work remotely
+User Objective System Service Life Extension (MUOS`
+            },
+            {
+                id: 'JD006',
+                title: 'Software Engineer',
+                company: 'Applied Materials',
+                text: `Who We Are
+Applied Materials is a global leader in materials engineering solutions used to produce virtually every new chip and advanced display in the world. We design, build and service cutting-edge equipment that helps our customers manufacture display and semiconductor chips – the brains of devices we use every day. As the foundation of the global electronics industry, Applied enables the exciting technologies that literally connect our world – like AI and IoT. If you want to push the boundaries of materials science and engineering to create next generation technology, join us to deliver material innovation that changes the world.
+What We Offer
+Salary: $176,000.00 - $242,000.00
+Location: Santa Clara,CA
+You'll benefit from a supportive work culture that encourages you to learn, develop, and grow your career as you take on challenges and drive innovative solutions for our customers. We empower our team to push the boundaries of what is possible—while learning every day in a supportive leading global company. Visit our Careers website to learn more.
+At Applied Materials, we care about the health and wellbeing of our employees. We're committed to providing programs and support that encourage personal and professional growth and care for you at work, at home, or wherever you may go. Learn more about our benefits.
+As a Software Engineer at Applied Materials, you'll dive deep into groundbreaking technologies—like machine learning and AI—to craft novel software solutions that solve our customers' high-value problems. Our Software Engineers are responsible for designing, prototyping, developing, and debugging software solutions for semiconductor equipment components and devices to ensure quality and functionality. You'll develop software documentation and test procedures, troubleshoot software problems, and communicate with internal customers to understand project requirements. As part of our team, you'll contribute your expertise in intricate systems, deciphering code, and anticipating software behaviors to ensure Applied remains the leader in the semiconductor and display sectors.
+Role Responsibilities:
+Design and develop code for large scale complex software solutions for semiconductor equipment components and device with limited supervision
+Lead and execute complex software projects
+Define software specifications and test plan for test benches and the lab tools
+Communicate with internal and external customers for requirement analysis, project schedule and software troubleshooting
+Troubleshoot a wide range of complex, difficult software problems; perform tests on code and enhancements
+Minimum Qualifications:
+Bachelor's degree in Computer Science, Electrical Engineering, Mathematics, Physics, or a related field.
+7–10 years of related experience
+Extensive experience with controlling instrument/equipment requiring high precision and high repeatability
+Preferred Qualifications:
+PhD degree in a related field
+Proficient in Modern C++, Python, C#/Java/Rust, machine learning, web service architecture, signal processing, computer vision, robotics, user interface design, mathematical modelling, numerical methods for physical simulation, GPU programming
+Extensive experience with development on embedded system and PyTorch
+Experience with FPGA is preferred
+Additional Information
+Time Type: Full time
+Employee Type: Assignee / Regular
+Travel: Yes, 10% of the Time
+Relocation Eligible: Yes
+The salary offered to a selected candidate will be based on multiple factors including location, hire grade, job-related knowledge, skills, experience, and with consideration of internal equity of our current team members. In addition to a comprehensive benefits package, candidates may be eligible for other forms of compensation such as participation in a bonus and a stock award program, as applicable. For all sales roles, the posted salary range is the Target Total Cash (TTC) range for the role, which is the sum of base salary and target bonus amount at 100% goal achievement.
+Applied Materials is an Equal Opportunity Employer. Qualified applicants will receive consideration for employment without regard to race, color, national origin, citizenship, ancestry, religion, creed, sex, sexual orientation, gender identity, age, disability, veteran or military status, or any other basis prohibited by law.
+In addition, Applied endeavors to make our careers site accessible to all users. If you would like to contact us regarding accessibility of our website or need assistance completing the application process, please contact us via e-mail at Accommodations_Program@amat.com, or by calling our HR Direct Help Line at 877-612-7547, option 1, and following the prompts to speak to an HR Advisor. This contact is for accommodation requests only and cannot be used to inquire about the status of applications.`
+            },
+            {
+                id: 'JD007',
+                title: 'Software Engineer - Infrastructure',
+                company: 'Meta',
+                text: `Software Engineer, Infrastructure Responsibilities:
+• Collaborate with cross-functional teams (product, design, operations, infrastructure) to build innovative application experiences
+• Implement custom user interfaces using latest programming techniques and technologies
+• Develop reusable software components for interfacing with backend platforms
+• Analyze and optimize code for quality, efficiency, and performance
+• Lead complex technical or product efforts and provide technical guidance to peers
+• Architect efficient and scalable systems that drive complex applications
+• Identify and resolve performance and scalability issues
+• Work on a variety of coding languages and technologies
+• Establish ownership of components, features, or systems with expert end-to-end understanding
+Minimum Qualifications:
+• Currently has, or is in the process of obtaining a Bachelor's degree in Computer Science, Computer Engineering, relevant technical field, or equivalent practical experience. Degree must be completed prior to joining Meta
+• 2+ years of programming experience in a relevant language OR a PhD + 9 months programming experience in a relevant language
+• Track record of setting technical direction for a team, driving consensus and successful cross-functional partnerships
+• Experience building maintainable and testable code bases, including API design and unit testing techniques
+Preferred Qualifications:
+• Experience owning a component, feature or system
+• Experience improving quality through thoughtful code reviews, appropriate testing, proper rollout, monitoring, and proactive changes
+• Experience in programming languages such as C, C++, Java
+• Exposure to architectural patterns of large scale software applications
+• Experience designing, analyzing and improving efficiency, scalability, and stability of various system resources
+• 2+ years of relevant experience building large-scale infrastructure applications or similar experience
+• 1+ years of experience identifying, designing and completing medium to large features independently without guidance
+• Experience with scripting languages such as Python, Javascript or Hack
+About Meta:
+Meta builds technologies that help people connect, find communities, and grow businesses. When Facebook launched in 2004, it changed the way people connect. Apps like Messenger, Instagram and WhatsApp further empowered billions around the world. Now, Meta is moving beyond 2D screens toward immersive experiences like augmented and virtual reality to help build the next evolution in social technology. People who choose to build their careers by building with us at Meta help shape a future that will take us beyond what digital connection makes possible today—beyond the constraints of screens, the limits of distance, and even the rules of physics.
+Meta is proud to be an Equal Employment Opportunity and Affirmative Action employer. We do not discriminate based upon race, religion, color, national origin, sex (including pregnancy, childbirth, or related medical conditions), sexual orientation, gender, gender identity, gender expression, transgender status, sexual stereotypes, age, status as a protected veteran, status as an individual with disabilities, or other applicable legally protected characteristics. We also consider qualified applicants with criminal histories, consistent with applicable federal, state and local law. Meta participates in the E-Verify program in certain locations, as required by law. Please note that Meta may leverage artificial intelligence and machine learning technologies in connection with applications for employment.
+Meta is committed to providing reasonable accommodations for candidates with disabilities in our recruiting process. If you need any assistance or accommodations due to a disability, please let us know at accommodations-ext@meta.com.
+$58.65/hour to $181,000/year + bonus + equity + benefits
+Individual compensation is determined by skills, qualifications, experience, and location. Compensation details listed in this posting reflect the base hourly rate, monthly rate, or annual salary only, and do not include bonus, equity or sales incentives, if applicable. In addition to base compensation, Meta offers benefits. Learn more about benefits at Meta.`
+            },
+            {
+                id: 'JD008',
+                title: 'Software Engineer',
+                company: 'Accenture Federal Services',
+                text: `At Accenture Federal Services, nothing matters more than helping the US federal government make the nation stronger and safer and life better for people. Our 13,000+ people are united in a shared purpose to pursue the limitless potential of technology and ingenuity for clients across defense, national security, public safety, civilian, and military health organizations. Join Accenture Federal Services, a technology company within global Accenture. Recognized as a Glassdoor Top 100 Best Place to Work, we offer a collaborative and caring community where you feel like you belong and are empowered to grow, learn and thrive through hands-on experience, certifications, industry training and more. Join us to drive positive, lasting change that moves missions and the government forward!
+Job Description
+Software application developer / engineer, supporting the design, development, integration, maintenance and enhancement of custom and/or systems.
+Must have:
+• Experience with software development
+• Bachelor's degree
+Security Clearance:
+Active TS/SCI with polygraph clearance
+As required by local law, Accenture Federal Services provides reasonable ranges of compensation for hired roles based on labor costs in the states of California, Colorado, Hawaii, Illinois, Maryland, Massachusetts, Minnesota, New Jersey, New York, Washington, Vermont, the District of Columbia, and the city of Cleveland. The base pay range for this position in these locations is shown below. Compensation for roles at Accenture Federal Services varies depending on a wide array of factors, including but not limited to office location, role, skill set, and level of experience. Accenture Federal Services offers a wide variety of benefits. You can find more information on benefits here. We accept applications on an on-going basis and there is no fixed deadline to apply.
+The pay range for the states of California, Colorado, Hawaii, Illinois, Maryland, Massachusetts, Minnesota, New Jersey, New York, Washington, Vermont, the District of Columbia, and the city of Cleveland is:
+$75,500—$131,200 USD
+What We Believe
+As a company wholly dedicated to serving the US federal government, we bring together the best talent to help reinvent how federal agencies operate and deliver greater value for their mission and the American people. We have an unwavering commitment to creating a culture in which all our people are respected, feel a sense of belonging, and have equal opportunity. As a business imperative, every person at Accenture Federal Services has the responsibility to create and sustain a culture where everyone feels welcomed and included. This is grounded in our core values and our experience that hiring and developing great people who reflect different perspectives, experiences, and backgrounds is key to driving innovation and delivering the results that our clients and the country count on.
+Equal Employment Opportunity Statement
+We believe that no one should be discriminated against because of their differences. All employment decisions shall be made without regard to age, race, creed, color, religion, sex, national origin, ancestry, disability status, veteran status, sexual orientation, gender identity or expression, genetic information, marital status, citizenship status or any other basis as protected by federal, state, or local law. Our rich diversity makes us more innovative, more competitive, and more creative, which helps us better serve our clients and our communities. For details, view a copy of the Accenture Federal Services Equal Opportunity Policy Statement.
+Accenture Federal Services is an Equal Employment Opportunity employer. Additionally, as an A rmative Action Employer for Veterans and Individuals with Disabilities, Accenture Federal Services is committed to providing veteran employment opportunities to our service men and women.
+Requesting An Accommodation
+Accenture Federal Services is committed to providing equal employment opportunities for persons with disabilities or religious observances, including reasonable accommodation when needed. If you are hired by Accenture Federal Services and require accommodation to perform the essential functions of your role, you will be asked to participate in our reasonable accommodation process. Accommodations made to facilitate the recruiting process are not a guarantee of future or continued accommodations once hired.
+If you are being considered for employment opportunities with Accenture Federal Services and need an accommodation for a disability or religious observance during the interview process or for the job you are interviewing for, please speak with your recruiter.
+Other Employment Statements
+Applicants for employment in the US must have work authorization that does not now or in the future require sponsorship of a visa for employment authorization in the United States.
+Candidates who are currently employed by a client of Accenture Federal Services or an affiliated Accenture business may not be eligible for consideration.
+Job candidates will not be obligated to disclose sealed or expunged records of conviction or arrest as part of the hiring process.
+The Company will not discharge or in any other manner discriminate against employees or applicants because they have inquired about, discussed, or disclosed their own pay or the pay of another employee or applicant. Additionally, employees who have access to the compensation information of other employees or applicants as a part of their essential job functions cannot disclose the pay of other employees or applicants to individuals who do not otherwise have access to compensation information, unless the disclosure is (a) in response to a formal complaint or charge, (b) in furtherance of an investigation, proceeding, hearing, or action, including an investigation conducted by the employer, or (c) consistent with the Company's legal duty to furnish information.
+California requires additional notifications for applicants and employees. If you are a California resident, live in or plan to work from Los Angeles County upon being hired for this position, please click here for additional important information.`
+            },
+            {
+                id: 'JD009',
+                title: 'Full Stack Software Engineer - Build Reliability',
+                company: 'SpaceX',
+                text: `SpaceX was founded under the belief that a future where humanity is out exploring the stars is fundamentally more exciting than one where we are not. Today SpaceX is actively developing the technologies to make this possible, with the ultimate goal of enabling human life on Mars.
+FULL STACK SOFTWARE ENGINEER (BUILD RELIABILITY)
+We are seeking a Full Stack Software Engineer to design, develop, and continuously improve software solutions ensuring our vehicles can be built and flown reliably. This involves streamlining quality control processes, simplifying new product introduction, ensuring product traceability, as well as optimizing rocket and spacecraft reusability.
+As a Full Stack Software Engineer on our Build Reliability team, you will engage with other SpaceX engineers to discover the needs of the mission and write highly reliable software which turns the mission into reality. You will be responsible for the complete life-cycle of the software you create, including development, testing, and support. You are the engineer that other engineers can count on; you are technical, you attack every problem with enthusiasm; you remove hurdles. You are a self-starter, team player, have the hunger to venture quickly into unknown areas and code and make the system work.
+Aerospace experience is not required to be successful here - rather we look for smart, motivated, collaborative engineers who love solving problems and want to make an impact on a super inspiring mission.
+RESPONSIBILITIES:
+• Build highly reliable software solutions that may be used by users across SpaceX
+• Own all aspects of software engineering and product development
+• Act as a responsible engineer for various software products
+• Maintain highest standards of excellence, never settle for the status quo
+• Deep dive into your users' problems, find efficient solutions
+• Provide strong technical leadership, focus on continuous improvement
+• Seek out faults within our application suite or ERP suite and implement solutions to improve
+• Track usage of Applications and features and suggest/implement features to improve them
+BASIC QUALIFICATIONS:
+• Bachelor's degree in computer science, engineering, math, or scientific discipline; OR 2+ years of professional experience building software in lieu of a degree
+• Experience in full stack development
+PREFERRED SKILLS AND EXPERIENCE:
+• 5+ years of experience in web applications development
+• Experience as an architect - proven ability to design and implement robust and scalable systems with flexible and scalable UI that meets future needs
+• Expertise in C#, .NET, SQL, HTML, CSS, AngularJS, TypeScript
+• Expertise in Python, PostgreSQL
+• Deep understanding of object oriented programming and design principles
+• Deep understanding of testing, continuous integration, build, deployment & continuous monitoring
+• Experience scaling web applications and optimizing applications for performance
+• Solid understanding of UI/UX design to provide intuitive applications
+• Great creative and innovative problem-solving skills
+• Initiative and the ability to work independently and collaborate within a team
+• Experience developing software for manufacturing, production, or quality systems
+ADDITIONAL REQUIREMENTS:
+• Ability to work extended hours and weekends as needed
+• Must be willing to travel – up to 10%
+Pay Range:
+COMPENSATION AND BENEFITS:
+Software Engineer/Level I: $120,000.00 - $145,000.00/per year
+Software Engineer/Level II: $140,000.00 - $170,000.00/per year
+Your actual level and base salary will be determined on a case-by-case basis and may vary based on the following considerations: job-related knowledge and skills, education, and experience.
+Base salary is just one part of your total rewards package at SpaceX. You may also be eligible for long-term incentives, in the form of company stock, stock options, or long-term cash awards, as well as potential discretionary bonuses and the ability to purchase additional stock at a discount through an Employee Stock Purchase Plan. You will also receive access to comprehensive medical, vision, and dental coverage, access to a 401(k) retirement plan, short and long-term disability insurance, life insurance, paid parental leave, and various other discounts and perks. You may also accrue 3 weeks of paid vacation and will be eligible for 10 or more paid holidays per year. Exempt employees are eligible for 5 days of sick leave per year.
+SOFTWARE ENGINEER (FULL STACK) - BUILD RELIABILITY
+We are seeking a Full Stack Software Engineer to design, develop, and continuously improve software solutions ensuring our vehicles can be built and flown reliably. This involves streamlining quality control processes, simplifying new product introduction, ensuring product traceability, as well as optimizing rocket and spacecraft reusability.
+As a Full Stack Software Engineer on our Build Reliability team, you will engage with other SpaceX engineers to discover the needs of the mission and write highly reliable software which turns the mission into reality. You will be responsible for the complete life-cycle of the software you create, including development, testing, and support. You are the engineer that other engineers can count on; you are technical, you attack every problem with enthusiasm; you remove hurdles. You are a self-starter, team player, have the hunger to venture quickly into unknown areas and code and make the system work.
+Aerospace experience is not required to be successful here - rather we look for smart, motivated, collaborative engineers who love solving problems and want to make an impact on a super inspiring mission.
+Pay Range:
+Software Engineer/Level I: $120,000.00 - $145,000.00/per year
+Software Engineer/Level II: $140,000.00 - $170,000.00/per year
+Your actual level and base salary will be determined on a case-by-case basis and may vary based on the following considerations: job-related knowledge and skills, education, and experience.
+Base salary is just one part of your total rewards package at SpaceX. You may also be eligible for long-term incentives, in the form of company stock, stock options, or long-term cash awards, as well as potential discretionary bonuses and the ability to purchase additional stock at a discount through an Employee Stock Purchase Plan. You will also receive access to comprehensive medical, vision, and dental coverage, access to a 401(k) retirement plan, short and long-term disability insurance, life insurance, paid parental leave, and various other discounts and perks. You may also accrue 3 weeks of paid vacation and will be eligible for 10 or more paid holidays per year. Exempt employees are eligible for 5 days of sick leave per year.
+ITAR REQUIREMENTS:
+• To conform to U.S. Government export regulations, applicant must be a (i) U.S. citizen or national, (ii) U.S. lawful, permanent resident (aka green card holder), (iii) Refugee under 8 U.S.C. 1157, or (iv) Asylee under 8 U.S.C. 1158, or be eligible to obtain the required authorizations from the U.S. Department of State. Learn more about the ITAR here.
+SpaceX is an Equal Opportunity Employer; employment with SpaceX is governed on the basis of merit, competence and qualifications and will not be influenced in any manner by race, color, religion, gender, national origin/ethnicity, veteran status, disability status, age, sexual orientation, gender identity, marital status, mental or physical disability or any other legally protected status.
+Applicants wishing to view a copy of SpaceX's Affirmative Action Plan for veterans and individuals with disabilities, or applicants requiring reasonable accommodation to the application/interview process should reach out to EEOCompliance@spacex.com.`
+            },
+            {
+                id: 'JD010',
+                title: 'Software Engineer',
+                company: 'Chantilly, VA TS/SCI with Poly',
+                text: `Chantilly, VA TS/SCI with Poly`
+            }
+        ];
+
+        // Initialize job descriptions on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadJobDescriptions();
+        });
+
+        function loadJobDescriptions() {
+            const container = document.getElementById('jobSelectionContainer');
+            let html = '';
+            
+            predefinedJobs.forEach(job => {
+                html += `
+                    <div style="padding: 8px; border-bottom: 1px solid #ddd; cursor: pointer;">
+                        <input type="checkbox" id="job_${job.id}" value="${job.id}" checked>
+                        <label for="job_${job.id}" style="margin-left: 8px; cursor: pointer; font-weight: 600;">
+                            ${job.title}
+                        </label>
+                        <div style="margin-left: 25px; color: #999; font-size: 0.9em; margin-top: 3px;">
+                            ${job.company}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function getSelectedJobs() {
+            const selected = [];
+            predefinedJobs.forEach(job => {
+                const checkbox = document.getElementById(`job_${job.id}`);
+                if (checkbox && checkbox.checked) {
+                    selected.push({
+                        jobId: job.id,
+                        text: job.text
+                    });
+                }
+            });
+            return selected;
+        }
+
+        function switchTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                uploadedFile = file;
+                document.getElementById('fileName').textContent = `✓ File selected: ${file.name}`;
+                
+                // Read file and populate resume text
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('resumeText').value = e.target.result;
+                    switchTab('paste');
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Drag and drop functionality
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragging');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        });
+
+        function clearAll() {
+            document.getElementById('resumeText').value = '';
+            document.getElementById('resultsContainer').style.display = 'none';
+            uploadedFile = null;
+            document.getElementById('fileName').textContent = '';
+            // Reset all job checkboxes to checked
+            predefinedJobs.forEach(job => {
+                const checkbox = document.getElementById(`job_${job.id}`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+
+        function matchResume() {
+            const resumeText = document.getElementById('resumeText').value.trim();
+
+            // Validation
+            if (!resumeText) {
+                showError('Please paste or upload your resume');
+                return;
+            }
+
+            // Get selected jobs
+            const selectedJobs = getSelectedJobs();
+            if (selectedJobs.length === 0) {
+                showError('Please select at least one job description');
+                return;
+            }
+
+            // Show loading
+            showLoading();
+
+            // Call API with selected jobs
+            const jobTexts = selectedJobs.map(j => j.text);
+            const jobIds = selectedJobs.map(j => j.jobId);
+
+            fetch('/api/match', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    resume: resumeText,
+                    jobDescriptions: jobTexts,
+                    jobIds: jobIds
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('API error');
+                return response.json();
+            })
+            .then(data => {
+                displayResults(data.data);
+            })
+            .catch(error => {
+                showError('Error: ' + error.message);
+            });
+        }
+
+        function displayResults(result) {
+            const container = document.getElementById('resultsContainer');
+            const content = document.getElementById('resultsContent');
+
+            // Candidate info
+            let html = '<div class="candidate-info">';
+            html += `<p><strong>Candidate:</strong> ${result.name || 'N/A'}</p>`;
+            if (result.email) html += `<p><strong>Email:</strong> ${result.email}</p>`;
+            if (result.phone) html += `<p><strong>Phone:</strong> ${result.phone}</p>`;
+            if (result.yearOfExperience !== null) html += `<p><strong>Experience:</strong> ${result.yearOfExperience} years</p>`;
+            html += `<p><strong>Skills Found:</strong> ${result.resumeSkills.length}</p>`;
+            html += '</div>';
+
+            // Matching jobs
+            if (result.matchingJobs && result.matchingJobs.length > 0) {
+                result.matchingJobs.forEach((job, index) => {
+                    const score = job.matchingScore;
+                    let scoreClass = 'poor';
+                    if (score >= 90) scoreClass = 'excellent';
+                    else if (score >= 75) scoreClass = 'good';
+                    else if (score >= 60) scoreClass = 'decent';
+
+                    html += '<div class="match-card">';
+                    html += '<div class="match-header">';
+                    html += `<div><h3>${job.role || 'Job ' + (index + 1)}</h3><p style="color: #999; margin-top: 5px;">${job.aboutRole ? job.aboutRole.substring(0, 100) + '...' : ''}</p></div>`;
+                    html += `<div class="score ${scoreClass}">${score.toFixed(1)}%</div>`;
+                    html += '</div>';
+
+                    // Skills analysis
+                    if (job.skillsAnalysis && job.skillsAnalysis.length > 0) {
+                        const matched = job.skillsAnalysis.filter(s => s.presentInResume);
+                        const missing = job.skillsAnalysis.filter(s => !s.presentInResume);
+
+                        if (matched.length > 0) {
+                            html += '<div class="skills-section">';
+                            html += '<h4>✓ Matched Skills</h4>';
+                            html += '<div class="skill-list">';
+                            matched.forEach(skill => {
+                                html += `<span class="skill matched">${skill.skill}</span>`;
+                            });
+                            html += '</div></div>';
+                        }
+
+                        if (missing.length > 0) {
+                            html += '<div class="skills-section">';
+                            html += '<h4>✗ Missing Skills (Nice to have)</h4>';
+                            html += '<div class="skill-list">';
+                            missing.forEach(skill => {
+                                html += `<span class="skill missing">${skill.skill}</span>`;
+                            });
+                            html += '</div></div>';
+                        }
+                    }
+
+                    html += '</div>';
+                });
+            } else {
+                html += '<div class="no-results">No matching jobs found</div>';
+            }
+
+            content.innerHTML = html;
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showLoading() {
+            const container = document.getElementById('resultsContainer');
+            const content = document.getElementById('resultsContent');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing resume and matching jobs...</p></div>';
+            container.style.display = 'block';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('resultsContainer');
+            const content = document.getElementById('resultsContent');
+            content.innerHTML = `<div class="error">${message}</div>`;
+            container.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
