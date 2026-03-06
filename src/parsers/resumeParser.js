@@ -5,6 +5,22 @@
 
 const { extractName, extractEmail, extractPhone, extractSalary, extractYearsOfExperience } = require('../utils/extractors');
 const { normalizeSkill, isKnownSkill } = require('../utils/skillDatabase');
+const fs = require('fs');
+const pdfParse = require('pdf-parse');
+
+/**
+ * Extract text from PDF buffer
+ * @param {Buffer} pdfBuffer - PDF file buffer
+ * @returns {Promise<string>} Extracted text
+ */
+async function extractTextFromPDF(pdfBuffer) {
+  try {
+    const data = await pdfParse(pdfBuffer);
+    return data.text;
+  } catch (error) {
+    throw new Error('Failed to parse PDF: ' + error.message);
+  }
+}
 
 /**
  * Extract skills from resume text using rule-based approach
@@ -57,10 +73,25 @@ function extractSkillsFromResume(text) {
 
 /**
  * Parse resume text and extract all relevant information
- * @param {string} resumeText - Complete resume text
- * @returns {object} Parsed resume data
+ * @param {string|Buffer} resumeInput - Complete resume text or PDF buffer
+ * @returns {Promise<object>} Parsed resume data
  */
-function parseResume(resumeText) {
+async function parseResume(resumeInput) {
+  if (!resumeInput) {
+    throw new Error('Resume input must be provided');
+  }
+
+  let resumeText;
+
+  // Handle PDF buffer
+  if (Buffer.isBuffer(resumeInput)) {
+    resumeText = await extractTextFromPDF(resumeInput);
+  } else if (typeof resumeInput === 'string') {
+    resumeText = resumeInput;
+  } else {
+    throw new Error('Resume input must be a string or Buffer');
+  }
+
   if (!resumeText || typeof resumeText !== 'string') {
     throw new Error('Resume text must be a non-empty string');
   }
@@ -80,15 +111,17 @@ function parseResume(resumeText) {
 
 /**
  * Parse multiple resumes
- * @param {string[]} resumeTexts - Array of resume texts
- * @returns {object[]} Array of parsed resume data
+ * @param {string[]|Buffer[]} resumeInputs - Array of resume texts or PDF buffers
+ * @returns {Promise<object[]>} Array of parsed resume data
  */
-function parseMultipleResumes(resumeTexts) {
-  return resumeTexts.map(text => parseResume(text));
+async function parseMultipleResumes(resumeInputs) {
+  const promises = resumeInputs.map(input => parseResume(input));
+  return await Promise.all(promises);
 }
 
 module.exports = {
   parseResume,
   parseMultipleResumes,
-  extractSkillsFromResume
+  extractSkillsFromResume,
+  extractTextFromPDF
 };

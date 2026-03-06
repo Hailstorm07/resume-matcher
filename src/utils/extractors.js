@@ -46,19 +46,17 @@ function extractYearsOfExperience(text) {
   // These patterns are designed to be flexible and match various formats
   const patterns = [
     // "5+ years of experience" or "5 years of experience" or "5 years professional experience"
-    /(\d+(?:\.\d+)?)\s*(?:\+)?\s*years\s*(?:of\s*)?(?:professional\s*)?(?:experience|in|with)?/gi,
+    /(\d+(?:\.\d+)?)\s*(?:\+)?\s*years\s*(?:of\s*)?(?:professional\s*)?(?:experience|in|with)?/i,
     // "experience: 5 years" or "experience 5 years"
-    /experience\s*[:\s]+\s*(\d+(?:\.\d+)?)\s*(?:years?)?/gi,
+    /experience\s*[:\s]+\s*(\d+(?:\.\d+)?)\s*(?:years?)?/i,
     // "5 yrs in development"
-    /(\d+(?:\.\d+)?)\s*yrs?\s*(?:in|of|with)?/gi,
+    /(\d+(?:\.\d+)?)\s*yrs?\s*(?:in|of|with)?/i,
     // "5 years" standalone
-    /(\d+(?:\.\d+)?)\s*years\b/gi
+    /(\d+(?:\.\d+)?)\s*years\b/i
   ];
 
   for (const pattern of patterns) {
-    // Reset regex lastIndex for global flag
-    pattern.lastIndex = 0;
-    const match = text.match(pattern);
+    const match = pattern.exec(text);
     if (match && match[1]) {
       const years = parseFloat(match[1]);
       // Validate the number is reasonable

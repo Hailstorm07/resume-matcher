@@ -19,12 +19,12 @@ console.log('='.repeat(80) + '\n');
 console.log('TEST 1: Resume Parsing - Extract Information');
 console.log('-'.repeat(80));
 
-function testResumeParsing() {
+async function testResumeParsing() {
   const resume = sampleResumes.resume1;
   console.log(`Testing: ${resume.name}\n`);
 
   try {
-    const parsed = parseResume(resume.text);
+    const parsed = await parseResume(resume.text);
     
     console.log('✓ Name:', parsed.name);
     console.log('✓ Email:', parsed.email);
@@ -73,13 +73,13 @@ function testJDParsing() {
 console.log('TEST 3: Single Resume to Single JD Matching');
 console.log('-'.repeat(80));
 
-function testSingleMatching() {
+async function testSingleMatching() {
   const resume = sampleResumes.resume1;
   const jd = sampleJDs.jd002;
   console.log(`Matching: ${resume.name} → ${jd.title}\n`);
 
   try {
-    const result = processResumeAndJDs(resume.text, [jd.text], [jd.jobId]);
+    const result = await processResumeAndJDs(resume.text, [jd.text], [jd.jobId]);
     
     console.log('Resume Information:');
     console.log('  Name:', result.name);
@@ -116,7 +116,7 @@ function testSingleMatching() {
 console.log('TEST 4: Single Resume to Multiple JDs Matching');
 console.log('-'.repeat(80));
 
-function testMultipleMatching() {
+async function testMultipleMatching() {
   const resume = sampleResumes.resume2;
   const jdTexts = [sampleJDs.jd001.text, sampleJDs.jd003.text, sampleJDs.jd004.text];
   const jobIds = [sampleJDs.jd001.jobId, sampleJDs.jd003.jobId, sampleJDs.jd004.jobId];
@@ -124,7 +124,7 @@ function testMultipleMatching() {
   console.log(`Matching: ${resume.name} → Multiple JDs\n`);
 
   try {
-    const result = processResumeAndJDs(resume.text, jdTexts, jobIds);
+    const result = await processResumeAndJDs(resume.text, jdTexts, jobIds);
     
     console.log('Resume Information:');
     console.log('  Name:', result.name);
@@ -157,7 +157,7 @@ function testMultipleMatching() {
 console.log('TEST 5: Years of Experience Extraction - Various Formats');
 console.log('-'.repeat(80));
 
-function testExperienceExtraction() {
+async function testExperienceExtraction() {
   const testCases = [
     { text: 'Software Engineer with 5+ years of experience', expected: 5 },
     { text: 'Fresher, Entry-Level position', expected: 0 },
@@ -167,14 +167,14 @@ function testExperienceExtraction() {
   ];
 
   let passed = 0;
-  testCases.forEach(testCase => {
-    const parsed = parseResume(testCase.text);
+  for (const testCase of testCases) {
+    const parsed = await parseResume(testCase.text);
     const success = parsed.yearOfExperience === testCase.expected;
     const status = success ? '✓' : '✗';
     console.log(`${status} "${testCase.text}"`);
     console.log(`  Expected: ${testCase.expected}, Got: ${parsed.yearOfExperience}`);
     if (success) passed++;
-  });
+  }
 
   console.log(`\n${passed}/${testCases.length} tests passed\n`);
   return passed === testCases.length;
@@ -184,7 +184,7 @@ function testExperienceExtraction() {
 console.log('TEST 6: Salary Extraction - Various Formats');
 console.log('-'.repeat(80));
 
-function testSalaryExtraction() {
+async function testSalaryExtraction() {
   const testCases = [
     { text: 'Salary: $120,000 per annum', expected: true },
     { text: 'CTC: ₹50,00,000 per annum', expected: true },
@@ -194,15 +194,15 @@ function testSalaryExtraction() {
   ];
 
   let passed = 0;
-  testCases.forEach(testCase => {
-    const parsed = parseResume(testCase.text);
+  for (const testCase of testCases) {
+    const parsed = await parseResume(testCase.text);
     const hasSalary = parsed.salary !== null;
     const success = hasSalary === testCase.expected;
     const status = success ? '✓' : '✗';
     console.log(`${status} "${testCase.text}"`);
     console.log(`  Expected salary: ${testCase.expected ? 'Found' : 'Not found'}, Got: ${parsed.salary || 'Not found'}`);
     if (success) passed++;
-  });
+  }
 
   console.log(`\n${passed}/${testCases.length} tests passed\n`);
   return passed === testCases.length;
@@ -212,16 +212,16 @@ function testSalaryExtraction() {
 console.log('TEST 7: Complete Output JSON Generation');
 console.log('-'.repeat(80));
 
-function testCompleteOutput() {
+async function testCompleteOutput() {
   const resume = sampleResumes.resume1;
   const jd = sampleJDs.jd002;
 
   try {
-    const result = processResumeAndJDs(resume.text, [jd.text], [jd.jobId]);
+    const result = await processResumeAndJDs(resume.text, [jd.text], [jd.jobId]);
     
     // Verify output structure
     const requiredFields = ['name', 'salary', 'yearOfExperience', 'resumeSkills', 'matchingJobs'];
-    const jobFields = ['jobId', 'role', 'aboutRole', 'skillsAnalysis', 'matchingScore'];
+    const jobFields = ['jobId', 'role', 'aboutRole', 'skillsAnalysis', 'matchingScore', 'fullDescription'];
     const skillFields = ['skill', 'presentInResume'];
 
     let structureValid = true;
@@ -275,44 +275,42 @@ function testCompleteOutput() {
 // Run all tests
 console.log('Running test suite...\n');
 
-const results = {
-  'Resume Parsing': testResumeParsing(),
-  'JD Parsing': testJDParsing(),
-  'Single Matching': testSingleMatching(),
-  'Multiple Matching': testMultipleMatching(),
-  'Experience Extraction': testExperienceExtraction(),
-  'Salary Extraction': testSalaryExtraction(),
-  'Complete Output': testCompleteOutput()
-};
+async function runTests() {
+  const results = {
+    'Resume Parsing': await testResumeParsing(),
+    'JD Parsing': testJDParsing(),
+    'Single Matching': await testSingleMatching(),
+    'Multiple Matching': await testMultipleMatching(),
+    'Experience Extraction': await testExperienceExtraction(),
+    'Salary Extraction': await testSalaryExtraction(),
+    'Complete Output': await testCompleteOutput()
+  };
 
-// Summary
-console.log('='.repeat(80));
-console.log('TEST SUMMARY');
-console.log('='.repeat(80));
+  // Summary
+  console.log('='.repeat(80));
+  console.log('TEST SUMMARY');
+  console.log('='.repeat(80));
 
-let totalPassed = 0;
-let totalTests = Object.keys(results).length;
+  let totalPassed = 0;
+  let totalTests = Object.keys(results).length;
 
-Object.entries(results).forEach(([testName, passed]) => {
-  const status = passed ? '✅ PASS' : '❌ FAIL';
-  console.log(`${status} - ${testName}`);
-  if (passed) totalPassed++;
-});
+  Object.entries(results).forEach(([testName, passed]) => {
+    const status = passed ? '✅ PASS' : '❌ FAIL';
+    console.log(`${status} - ${testName}`);
+    if (passed) totalPassed++;
+  });
 
-console.log('-'.repeat(80));
-console.log(`Total: ${totalPassed}/${totalTests} tests passed`);
+  console.log('-'.repeat(80));
+  console.log(`Total: ${totalPassed}/${totalTests} tests passed`);
 
-if (totalPassed === totalTests) {
-  console.log('\n🎉 ALL TESTS PASSED! System is working correctly.\n');
-} else {
-  console.log(`\n⚠️  ${totalTests - totalPassed} test(s) failed. Review the output above.\n`);
+  if (totalPassed === totalTests) {
+    console.log('\n🎉 ALL TESTS PASSED! System is working correctly.\n');
+  } else {
+    console.log(`\n⚠️  ${totalTests - totalPassed} test(s) failed. Review the output above.\n`);
+  }
+
+  console.log('='.repeat(80) + '\n');
 }
 
-console.log('='.repeat(80) + '\n');
-
-function runTests() {
-  // Tests are executed on require
-  return totalPassed === totalTests;
-}
-
-module.exports = { runTests };
+// Execute suite
+runTests().catch(console.error);

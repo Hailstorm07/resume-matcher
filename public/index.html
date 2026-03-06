@@ -395,8 +395,8 @@
 
                 <div class="tabs-container">
                     <div class="input-tabs">
-                        <button class="tab-button active" onclick="switchTab('paste')">Paste Text</button>
-                        <button class="tab-button" onclick="switchTab('upload')">Upload File</button>
+                        <button class="tab-button active" data-tab="paste" onclick="switchTab('paste', event)">Paste Text</button>
+                        <button class="tab-button" data-tab="upload" onclick="switchTab('upload', event)">Upload File</button>
                     </div>
 
                     <!-- Paste Text Tab -->
@@ -460,27 +460,21 @@
                     <strong>Skills:</strong> Java, Spring Boot, React, Python, Docker, Kubernetes, MySQL, PostgreSQL
                 </div>
 
-                <h3 style="color: #667eea; margin-bottom: 15px;">Available Positions:</h3>
-                <div style="font-size: 0.9em; color: #555; line-height: 1.8; margin-bottom: 20px;">
-                    <div style="margin-bottom: 10px; padding: 8px; background: #f0f4ff; border-radius: 4px;">
-                        <strong>1. Scientific Programmer/Software Engineer</strong><br>
-                        <span style="color: #999;">Riverside Research</span>
+                <h3 style="color: #667eea; margin-bottom: 15px;">Matching Score Guide:</h3>
+                <div style="font-size: 0.9em; color: #555; line-height: 1.8;">
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; color: #155724;">90-100%</span> Excellent Match
                     </div>
-                    <div style="margin-bottom: 10px; padding: 8px; background: #f0f4ff; border-radius: 4px;">
-                        <strong>2. Software Engineer - Core Java/Spring Boot</strong><br>
-                        <span style="color: #999;">Capgemini</span>
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: #cfe2ff; padding: 2px 6px; border-radius: 3px; color: #084298;">75-89%</span> Good Match
                     </div>
-                    <div style="margin-bottom: 10px; padding: 8px; background: #f0f4ff; border-radius: 4px;">
-                        <strong>3. Software Engineer</strong><br>
-                        <span style="color: #999;">Adobe</span>
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: #fff3cd; padding: 2px 6px; border-radius: 3px; color: #856404;">60-74%</span> Decent Match
                     </div>
-                    <div style="padding: 8px; background: #f0f4ff; border-radius: 4px;">
-                        <strong>4. Software Engineer - Infrastructure</strong><br>
-                        <span style="color: #999;">Astra</span>
+                    <div>
+                        <span style="background: #f8d7da; padding: 2px 6px; border-radius: 3px; color: #721c24;">Below 60%</span> Poor Match
                     </div>
                 </div>
-
-                <h3 style="color: #667eea; margin-bottom: 15px;">Matching Score Guide:</h3>
                 <div style="font-size: 0.9em; color: #555; line-height: 1.8;">
                     <div style="margin-bottom: 8px;">
                         <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; color: #155724;">90-100%</span> Excellent Match
@@ -856,7 +850,7 @@ Applicants wishing to view a copy of SpaceX's Affirmative Action Plan for vetera
             return selected;
         }
 
-        function switchTab(tab) {
+        function switchTab(tab, evt) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(el => {
                 el.classList.remove('active');
@@ -867,7 +861,13 @@ Applicants wishing to view a copy of SpaceX's Affirmative Action Plan for vetera
 
             // Show selected tab
             document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
+            // Highlight corresponding button if available
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            } else {
+                const btn = document.querySelector(`.tab-button[data-tab="${tab}"]`);
+                if (btn) btn.classList.add('active');
+            }
         }
 
         function handleFileSelect(event) {
@@ -922,8 +922,8 @@ Applicants wishing to view a copy of SpaceX's Affirmative Action Plan for vetera
             const resumeText = document.getElementById('resumeText').value.trim();
 
             // Validation
-            if (!resumeText) {
-                showError('Please paste or upload your resume');
+            if (!resumeText && !uploadedFile) {
+                showError('Please paste your resume text or upload a file');
                 return;
             }
 
@@ -937,20 +937,34 @@ Applicants wishing to view a copy of SpaceX's Affirmative Action Plan for vetera
             // Show loading
             showLoading();
 
-            // Call API with selected jobs
+            // Prepare data for API call
             const jobTexts = selectedJobs.map(j => j.text);
             const jobIds = selectedJobs.map(j => j.jobId);
 
-            fetch('/api/match', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+            // Use FormData for file uploads, JSON for text
+            let requestData;
+            let headers = {};
+
+            if (uploadedFile) {
+                // Send as FormData for file upload
+                requestData = new FormData();
+                requestData.append('resumeFile', uploadedFile);
+                requestData.append('jobDescriptions', JSON.stringify(jobTexts));
+                requestData.append('jobIds', JSON.stringify(jobIds));
+            } else {
+                // Send as JSON for text input
+                requestData = JSON.stringify({
                     resume: resumeText,
                     jobDescriptions: jobTexts,
                     jobIds: jobIds
-                })
+                });
+                headers['Content-Type'] = 'application/json';
+            }
+
+            fetch('/api/match', {
+                method: 'POST',
+                headers: headers,
+                body: requestData
             })
             .then(response => {
                 if (!response.ok) throw new Error('API error');
@@ -991,6 +1005,14 @@ Applicants wishing to view a copy of SpaceX's Affirmative Action Plan for vetera
                     html += `<div><h3>${job.role || 'Job ' + (index + 1)}</h3><p style="color: #999; margin-top: 5px;">${job.aboutRole ? job.aboutRole.substring(0, 100) + '...' : ''}</p></div>`;
                     html += `<div class="score ${scoreClass}">${score.toFixed(1)}%</div>`;
                     html += '</div>';
+
+                    // Full Job Description
+                    if (job.fullDescription) {
+                        html += '<div class="job-description" style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #667eea;">';
+                        html += '<h4 style="color: #667eea; margin-bottom: 10px;">Full Job Description:</h4>';
+                        html += `<div style="color: #555; line-height: 1.6; white-space: pre-wrap; font-size: 0.9em;">${job.fullDescription}</div>`;
+                        html += '</div>';
+                    }
 
                     // Skills analysis
                     if (job.skillsAnalysis && job.skillsAnalysis.length > 0) {
