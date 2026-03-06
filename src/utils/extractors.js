@@ -42,36 +42,48 @@ function extractYearsOfExperience(text) {
     return 0;
   }
 
-  // Patterns for explicit years
+  // Patterns for explicit years - tried in order of specificity
+  // These patterns are designed to be flexible and match various formats
   const patterns = [
-    /(\d+(?:\.\d+)?)\s*(?:\+)?\s*years?\s*of\s*(?:professional\s+)?experience/gi,
-    /(\d+(?:\.\d+)?)\s*yrs?\b/gi,
-    /(\d+(?:\.\d+)?)\s*years?/gi
+    // "5+ years of experience" or "5 years of experience" or "5 years professional experience"
+    /(\d+(?:\.\d+)?)\s*(?:\+)?\s*years\s*(?:of\s*)?(?:professional\s*)?(?:experience|in|with)?/gi,
+    // "experience: 5 years" or "experience 5 years"
+    /experience\s*[:\s]+\s*(\d+(?:\.\d+)?)\s*(?:years?)?/gi,
+    // "5 yrs in development"
+    /(\d+(?:\.\d+)?)\s*yrs?\s*(?:in|of|with)?/gi,
+    // "5 years" standalone
+    /(\d+(?:\.\d+)?)\s*years\b/gi
   ];
 
   for (const pattern of patterns) {
+    // Reset regex lastIndex for global flag
+    pattern.lastIndex = 0;
     const match = text.match(pattern);
-    if (match) {
+    if (match && match[1]) {
       const years = parseFloat(match[1]);
-      if (!isNaN(years) && years >= 0) {
+      // Validate the number is reasonable
+      if (!isNaN(years) && years >= 0 && years <= 100) {
         return years;
       }
     }
   }
 
-  // Try to extract from date ranges (e.g., "2015-2023")
-  const dateRangePattern = /(\d{4})\s*-\s*(?:(current|present)|\d{4})/gi;
-  const dateMatches = text.matchAll(dateRangePattern);
+  // Try to extract from date ranges (e.g., "2015-2023", "2015 - 2023", or "(2015-2023)")
+  const dateRangePattern = /[\(\s]?(\d{4})\s*-\s*(?:(current|present|\d{4}))/gi;
   
-  for (const match of dateMatches) {
+  for (const match of text.matchAll(dateRangePattern)) {
     const startYear = parseInt(match[1]);
-    const endYear = match[2] && (match[2].toLowerCase() === 'current' || match[2].toLowerCase() === 'present') 
-      ? new Date().getFullYear() 
-      : parseInt(match[2]);
+    const endYearStr = match[2];
     
-    if (!isNaN(startYear) && !isNaN(endYear)) {
+    if (!endYearStr) continue;
+    
+    const endYear = (endYearStr.toLowerCase() === 'current' || endYearStr.toLowerCase() === 'present') 
+      ? new Date().getFullYear() 
+      : parseInt(endYearStr);
+    
+    if (!isNaN(startYear) && !isNaN(endYear) && endYear >= startYear) {
       const years = endYear - startYear;
-      if (years >= 0) return years;
+      if (years >= 0 && years <= 100) return years;
     }
   }
 
