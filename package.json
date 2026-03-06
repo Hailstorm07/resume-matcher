@@ -8,11 +8,17 @@
     "api": "node src/api.js",
     "test": "node test/test.js"
   },
-  "keywords": ["resume", "parsing", "job-matching"],
+  "keywords": [
+    "resume",
+    "parsing",
+    "job-matching"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "natural": "^6.7.0"
+    "multer": "^2.1.1",
+    "natural": "^6.7.0",
+    "pdf-parse": "^2.4.5"
   }
 }

@@ -8,14 +8,14 @@ const { matchResumeWithJD, matchResumeWithMultipleJDs } = require('./matchers/sk
 
 /**
  * Complete resume matching workflow
- * @param {string} resumeText - Resume text
+ * @param {string|Buffer} resumeInput - Resume text or PDF buffer
  * @param {string[]} jobDescriptionTexts - Array of JD texts
  * @param {string[]} jobIds - Optional array of job IDs
- * @returns {object} Complete matching result in required format
+ * @returns {Promise<object>} Complete matching result in required format
  */
-function processResumeAndJDs(resumeText, jobDescriptionTexts, jobIds = null) {
+async function processResumeAndJDs(resumeInput, jobDescriptionTexts, jobIds = null) {
   // Parse resume
-  const parsedResume = parseResume(resumeText);
+  const parsedResume = await parseResume(resumeInput);
 
   // Parse job descriptions
   const jdData = jobDescriptionTexts.map((text, index) => ({
@@ -35,10 +35,11 @@ function processResumeAndJDs(resumeText, jobDescriptionTexts, jobIds = null) {
     salary: parsedResume.salary,
     yearOfExperience: parsedResume.yearOfExperience,
     resumeSkills: parsedResume.resumeSkills,
-    matchingJobs: matches.map(match => ({
+    matchingJobs: matches.map((match, index) => ({
       jobId: match.jobId,
       role: match.role,
       aboutRole: match.aboutRole,
+      fullDescription: parsedJDs[index].rawText, // Add full JD text
       skillsAnalysis: match.skillsAnalysis,
       matchingScore: match.matchingScore
     }))
