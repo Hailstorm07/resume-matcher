@@ -1,6 +1,6 @@
 # 🚀 Resume Parsing and Job Matching System
 
-## Quick Start (30 seconds)
+## Quick Start
 
 ```bash
 cd resume-matcher
