@@ -2,11 +2,12 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files early to leverage Docker layer caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Set production environment and install exact dependencies using lockfile
+ENV NODE_ENV=production
+RUN npm ci --omit=dev
 
 # Copy application code
 COPY src ./src
