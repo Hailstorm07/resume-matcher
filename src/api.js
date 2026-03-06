@@ -19,9 +19,15 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // Serve static files (web UI)
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Home page
+// Home page - send static file directly
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+  const filePath = path.join(__dirname, '..', 'public', 'index.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).json({ error: 'Failed to load home page' });
+    }
+  });
 });
 
 // Health check endpoint
@@ -176,10 +182,13 @@ app.get('/api/docs', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Unhandled error:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
   res.status(500).json({
     success: false,
-    error: 'Internal server error'
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
   });
 });
 
