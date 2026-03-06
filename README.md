@@ -267,42 +267,6 @@ The system outputs structured JSON matching the required format:
 }
 ```
 
-## Evaluation Criteria Met
-
-✅ **Extraction Accuracy (40%)**
-- Robust regex patterns for salary, experience, skills
-- Handles various date formats and number formats
-- 100+ skill recognition from database
-
-✅ **Matching Logic and Score Calculation (25%)**
-- Fuzzy matching with Levenshtein distance (threshold: 0.85)
-- Score formula: (Matched Skills / Total Required Skills) × 100
-- Comprehensive skill analysis output
-
-✅ **Code Quality and Structure (20%)**
-- Modular architecture with separated concerns
-- Clear function documentation with JSDoc
-- Error handling and validation
-- Clean, readable code
-
-✅ **Performance and Efficiency (10%)**
-- Optimized string matching algorithms
-- Efficient skill database lookups
-- Fast processing of resumes and JDs
-
-✅ **Documentation (5%)**
-- Comprehensive README
-- Inline code documentation
-- API documentation endpoint
-- Usage examples
-
-## Bonus Features Implemented
-
-✅ **API Implementation** - Full REST API with Express.js
-✅ **Batch Processing** - Process multiple resumes/JDs simultaneously
-✅ **Test Suite** - Comprehensive test coverage
-✅ **Docker Support** - Dockerfile for containerization (see below)
-
 ## Docker Support
 
 Build and run with Docker:
@@ -315,12 +279,6 @@ docker build -t resume-matcher .
 docker run -p 3000:3000 resume-matcher npm run api
 ```
 
-## Constraints Compliance
-
-✅ **No LLMs Used** - Pure rule-based system
-✅ **No Generative AI** - Traditional NLP and regex only
-✅ **Node.js Implementation** - Written in JavaScript/Node.js
-✅ **Allowed Libraries Only** - Using native Node.js only (no NLP libraries required)
 
 ## Example Usage
 
@@ -372,4 +330,4 @@ MIT
 
 ## Author
 
-Candidate Assignment Submission - Resume Parsing and Job Matching System
+Aniket Kumar
